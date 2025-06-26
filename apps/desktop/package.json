@@ -9,19 +9,26 @@
     "build": "vite build",
     "build:electron": "electron-builder",
     "lint": "eslint . --ext .ts,.tsx",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "test": "vitest --run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "electron-log": "^5.0.0",
-    "electron-store": "^8.0.0"
+    "electron-store": "^8.0.0",
+    "ws": "^8.18.0",
+    "canvas": "^2.11.2",
+    "zod": "^3.22.4"
   },
   "optionalDependencies": {
-    "uiohook-napi": "^1.5.2"
+    "uiohook-napi": "^1.5.2",
+    "dpapi-addon": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
+    "@types/ws": "^8.5.12",
     "@vitejs/plugin-react": "^4.0.0",
     "concurrently": "^8.0.0",
     "electron": "^30.0.0",
@@ -32,6 +39,7 @@
     "tailwindcss": "^3.4.0",
     "typescript": "^5.8.3",
     "vite": "^5.0.0",
+    "vitest": "^1.6.0",
     "wait-on": "^7.0.0"
   }
 }

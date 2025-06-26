@@ -109,14 +109,25 @@ export class AudioStreamHandler {
   }
 
   private forwardToSTTWorker(audioData: ArrayBuffer, timestamp: number) {
-    // Placeholder for STT worker communication (Sprint 2: T8-T9)
-    // For now, just log that we would forward the data
-    log.debug(`Would forward ${audioData.byteLength} bytes to STT worker at ${timestamp}`)
-    
-    // TODO: Implement in Sprint 2
-    // - Send audio data to STT worker thread
-    // - Handle backpressure if worker is busy
-    // - Queue audio chunks if needed
+    // Forward audio data to STT worker (Sprint 2: T8-T9)
+    try {
+      // Import worker manager dynamically to avoid circular dependencies
+      const { sttWorkerManager } = require('../workerManager')
+      
+      if (sttWorkerManager.isRunning()) {
+        // Create a copy of the ArrayBuffer since we're transferring it
+        const audioDataCopy = audioData.slice(0)
+        sttWorkerManager.sendAudio(audioDataCopy)
+        
+        if (this.chunkCount % 100 === 0) { // Log every ~2 seconds
+          log.debug(`Forwarded ${audioData.byteLength} bytes to STT worker at ${timestamp}`)
+        }
+      } else {
+        log.debug('STT worker not running, skipping audio data')
+      }
+    } catch (error) {
+      log.error('Error forwarding audio to STT worker:', error)
+    }
   }
 
   startStream() {
