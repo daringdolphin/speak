@@ -1,0 +1,48 @@
+{
+  "appId": "ai.quicktranscriber.desktop",
+  "productName": "Speak",
+  "directories": {
+    "output": "../../dist/packages"
+  },
+  "files": [
+    "dist/**/*",
+    "package.json"
+  ],
+  "extraResources": [
+    {
+      "from": "src/renderer/audio/worklet.js",
+      "to": "worklet.js"
+    }
+  ],
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      }
+    ],
+    "icon": "assets/icon.ico",
+    "requestedExecutionLevel": "asInvoker"
+  },
+  "nsis": {
+    "oneClick": true,
+    "perMachine": false,
+    "allowElevation": true,
+    "allowToChangeInstallationDirectory": false,
+    "installerIcon": "assets/icon.ico",
+    "uninstallerIcon": "assets/icon.ico",
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "Speak"
+  },
+  "publish": [
+    {
+      "provider": "github",
+      "owner": "your-org",
+      "repo": "speak"
+    }
+  ],
+  "buildVersion": "0.1.0",
+  "compression": "normal",
+  "forceCodeSigning": false
+} 
