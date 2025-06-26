@@ -11,6 +11,8 @@ import { stateManager } from './stateManager'
 import { settings } from '../common/settings'
 // crypto service is used via stateManager
 import { perfMonitor } from './perfMonitor'
+import { telemetryService } from './telemetry'
+import { registerSettingsHandlers } from './ipc/settingsHandlers'
 
 // Configure logging
 log.transports.file.level = 'info'
@@ -60,6 +62,12 @@ app.whenReady().then(async () => {
   try {
     // Initialize core services first
     perfMonitor.initialize()
+    
+    // Initialize telemetry service
+    await telemetryService.initialize()
+    
+    // Register IPC handlers
+    registerSettingsHandlers()
     
     // Initialize state manager (handles most of the logic now)
     await stateManager.initialize()

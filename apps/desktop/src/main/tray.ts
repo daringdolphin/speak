@@ -1,5 +1,5 @@
-import { Tray, Menu, nativeImage, app } from 'electron'
-// path utilities used in tray icon creation
+import { Tray, Menu, nativeImage, app, BrowserWindow } from 'electron'
+import { join } from 'path'
 import log from 'electron-log'
 
 type TrayState = 'idle' | 'recording' | 'error'
@@ -7,6 +7,7 @@ type TrayState = 'idle' | 'recording' | 'error'
 export class SystemTray {
   private tray: Tray | null = null
   private currentState: TrayState = 'idle'
+  private settingsWindow: BrowserWindow | null = null
 
   constructor() {
     // Don't create tray immediately, wait for initialize() call
@@ -104,22 +105,22 @@ export class SystemTray {
       {
         label: 'Settings...',
         click: () => {
-          log.info('Settings clicked (not implemented yet)')
-          // TODO: Open settings dialog in T25
+          log.info('Opening settings dialog')
+          this.openSettingsDialog()
         }
       },
       {
         label: 'API Key...',
         click: () => {
-          log.info('API Key clicked (not implemented yet)')
-          // TODO: Open API key dialog in T25
+          log.info('Opening API key dialog')
+          this.openSettingsDialog('api')
         }
       },
       {
         label: 'Hotkey...',
         click: () => {
-          log.info('Hotkey clicked (not implemented yet)')
-          // TODO: Open hotkey dialog in T25
+          log.info('Opening hotkey dialog')
+          this.openSettingsDialog('hotkey')
         }
       },
       {
@@ -247,9 +248,76 @@ export class SystemTray {
   }
 
   /**
+   * Open settings dialog
+   */
+  private openSettingsDialog(section?: 'api' | 'hotkey') {
+    // If settings window already exists, focus it
+    if (this.settingsWindow && !this.settingsWindow.isDestroyed()) {
+      this.settingsWindow.focus()
+      return
+    }
+
+    // Create new settings window
+    this.settingsWindow = new BrowserWindow({
+      width: 700,
+      height: 800,
+      resizable: true,
+      minimizable: false,
+      maximizable: false,
+      alwaysOnTop: false,
+      center: true,
+      title: 'QuickTranscriber Settings',
+      webPreferences: {
+        preload: join(__dirname, '../preload/settingsBridge.js'),
+        nodeIntegration: false,
+        contextIsolation: true,
+        sandbox: false,
+      },
+    })
+
+    // Load the settings page
+    const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL
+    if (VITE_DEV_SERVER_URL) {
+      this.settingsWindow.loadURL(`${VITE_DEV_SERVER_URL}/settings.html`)
+    } else {
+      this.settingsWindow.loadFile(join(__dirname, '../renderer/settings.html'))
+    }
+
+    // Handle window closed
+    this.settingsWindow.on('closed', () => {
+      this.settingsWindow = null
+      log.info('Settings window closed')
+    })
+
+    // Optional: scroll to specific section
+    if (section) {
+      this.settingsWindow.webContents.once('dom-ready', () => {
+        this.settingsWindow?.webContents.executeJavaScript(`
+          document.querySelector('[data-section="${section}"]')?.scrollIntoView({behavior: 'smooth'});
+        `)
+      })
+    }
+
+    log.info('Settings dialog opened')
+  }
+
+  /**
+   * Close settings dialog (called from IPC)
+   */
+  closeSettingsDialog() {
+    if (this.settingsWindow && !this.settingsWindow.isDestroyed()) {
+      this.settingsWindow.close()
+    }
+  }
+
+  /**
    * Clean up tray resources
    */
   destroy() {
+    if (this.settingsWindow && !this.settingsWindow.isDestroyed()) {
+      this.settingsWindow.close()
+    }
+    
     if (this.tray) {
       this.tray.destroy()
       this.tray = null
